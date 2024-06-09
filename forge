@@ -14,16 +14,16 @@ REPO_URL="https://github.com/yourusername/yourrepo.git"
 # Function to display usage
 usage() {
     echo "Usage: forge [option] [package]"
-    echo "Options:"
-    echo "  ${YELLOW}-h, --help${NC}            Display this help message"
-    echo "  ${YELLOW}-i, --install${NC}         Install a package"
-    echo "  ${YELLOW}-r, --remove${NC}          Remove a package from local repo"
-    echo "  ${YELLOW}--remove-forever${NC}      Remove a package from repo permanently"
-    echo "  ${YELLOW}-u, --uninstall${NC}       Uninstall a package"
-    echo "  ${YELLOW}-s, --search${NC}          Search for a package"
-    echo "  ${YELLOW}-v, --version${NC}         Show the current version of a package"
-    echo "  ${YELLOW}--update${NC}              Update the repo from GitHub"
-    echo "  ${YELLOW}--upgrade${NC}             Rebuild packages with new versions"
+    echo -e "Options:"
+    echo -e "  ${YELLOW}-h, --help${NC}\t\tDisplay this help message"
+    echo -e "  ${YELLOW}-i, --install${NC}\t\tInstall a package"
+    echo -e "  ${YELLOW}-r, --remove${NC}\t\tRemove a package from local repo"
+    echo -e "  ${YELLOW}--remove-forever${NC}\tRemove a package from repo permanently"
+    echo -e "  ${YELLOW}-u, --uninstall${NC}\t\tUninstall a package"
+    echo -e "  ${YELLOW}-s, --search${NC}\t\tSearch for a package"
+    echo -e "  ${YELLOW}-v, --version${NC}\t\tShow the current version of a package"
+    echo -e "  ${YELLOW}--update${NC}\t\t\tUpdate the repo from GitHub"
+    echo -e "  ${YELLOW}--upgrade${NC}\t\t\tRebuild packages with new versions"
     exit 1
 }
 
@@ -115,3 +115,4 @@ if [ -f "/usr/local/bin/forge" ]; then
 fi
 
 main "$@"
+
