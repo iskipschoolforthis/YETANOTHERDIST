@@ -1,0 +1,151 @@
+#!/bin/bash
+
+# Configuration
+REPO_BASE_DIR="/usr/local/repos"
+BLACKLIST_FILE="/usr/local/repos/blacklist.txt"
+REPO_URL="https://github.com/iskipschoolforthis/(to-be-filled)"
+
+# Function to display usage
+usage() {
+    echo "Usage: $0 [option] [package]"
+    echo "Options:"
+    echo "  -h, --help            Display this help message"
+    echo "  -i, --install         Install a package"
+    echo "  -r, --remove          Remove a package from local repo"
+    echo "  --remove-forever      Remove a package from repo permanently"
+    echo "  -u, --uninstall       Uninstall a package"
+    echo "  -s, --search          Search for a package"
+    echo "  -v, --version         Show the current version of a package"
+    echo "  --update              Update the repo from GitHub"
+    echo "  --upgrade             Rebuild packages with new versions"
+    exit 1
+}
+
+# Function to check if a package is installed
+is_installed() {
+    package="$1"
+    if [ -d "/$package" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Function to install a package
+install_package() {
+    package="$1"
+    found=false
+    for repo in "$REPO_BASE_DIR"/*; do
+        if [ -x "$repo/$package/build.sh" ]; then
+            echo "Installing package $package from repo $(basename $repo)..."
+            (cd "$repo/$package" && sh build.sh)
+            echo "Package $package installed successfully."
+            found=true
+            break
+        fi
+    done
+    if [ "$found" == false ]; then
+        echo "Build script not found for package $package in any repo."
+    fi
+}
+
+# Function to uninstall a package
+uninstall_package() {
+    package="$1"
+    for repo in "$REPO_BASE_DIR"/*; do
+        if is_installed "$package"; then
+            echo "Uninstalling package $package from repo $(basename $repo)..."
+            (cd "$repo/$package" && sh build.sh --uninstall)
+            echo "Package $package uninstalled successfully."
+            return
+        fi
+    done
+    echo "Package $package is not installed."
+}
+
+# Function to remove a package from the local repo
+remove_package() {
+    package="$1"
+    for repo in "$REPO_BASE_DIR"/*; do
+        if [ -d "$repo/$package" ]; then
+            rm -rf "$repo/$package"
+            echo "Package $package removed from local repo $(basename $repo)."
+            return
+        fi
+    done
+    echo "Package $package not found in any local repo."
+}
+
+# Function to remove a package from the repo permanently
+remove_forever() {
+    package="$1"
+    for repo in "$REPO_BASE_DIR"/*; do
+        if [ -d "$repo/$package" ]; then
+            rm -rf "$repo/$package"
+            echo "$package" >> "$BLACKLIST_FILE"
+            echo "Package $package removed from repo $(basename $repo) permanently."
+            return
+        fi
+    done
+    echo "Package $package not found in any repo."
+}
+
+# Function to search for a package
+search_package() {
+    package="$1"
+    found=false
+    for repo in "$REPO_BASE_DIR"/*; do
+        if [ -d "$repo/$package" ]; then
+            echo "Package $package found in local repo $(basename $repo)."
+            found=true
+            break
+        fi
+    done
+    if [ "$found" == false ]; then
+        echo "Package $package not found in any local repo."
+    fi
+}
+
+# Function to show the current version of a package
+show_version() {
+    package="$1"
+    found=false
+    for repo in "$REPO_BASE_DIR"/*; do
+        if [ -d "$repo/$package" ]; then
+            version_file="$repo/$package/version"
+            if [ -f "$version_file" ]; then
+                current_version=$(cat "$version_file")
+                echo "Current version of package $package in repo $(basename "$repo"): $current_version"
+                found=true
+                break
+            else
+                echo "Version information not found for package $package in repo $(basename "$repo")."
+            fi
+        fi
+    done
+    if [ "$found" == false ]; then
+        echo "Package $package not found in any local repo."
+    fi
+}
+
+# Function to update the repo from GitHub
+update_repo() {
+    echo "Updating repos from GitHub..."
+    for repo in "$REPO_BASE_DIR"/*; do
+        if [ -d "$repo/.git" ]; then
+            (cd "$repo" && git pull)
+        fi
+    done
+    # Remove packages in the blacklist
+    if [ -f "$BLACKLIST_FILE" ]; then
+        while IFS= read -r package; do
+            for repo in "$REPO_BASE_DIR"/*; do
+                if [ -d "$repo/$package" ]; then
+                    rm -rf "$repo/$package"
+                    echo "Package $package removed from repo $(basename $repo)."
+                fi
+            done
+        done < "$BLACKLIST_FILE"
+        rm "$BLACKLIST_FILE"
+    fi
+    echo
