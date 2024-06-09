@@ -1,9 +1,7 @@
-#!/bin/bash
-
 # Configuration
 REPO_BASE_DIR="/usr/local/repos"
 BLACKLIST_FILE="/usr/local/repos/blacklist.txt"
-REPO_URL="https://github.com/iskipschoolforthis/(to-be-filled)"
+REPO_URL="https://github.com/yourusername/yourrepo.git"
 
 # Function to display usage
 usage() {
@@ -21,16 +19,6 @@ usage() {
     exit 1
 }
 
-# Function to check if a package is installed
-is_installed() {
-    package="$1"
-    if [ -d "/$package" ]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
 # Function to install a package
 install_package() {
     package="$1"
@@ -38,7 +26,7 @@ install_package() {
     for repo in "$REPO_BASE_DIR"/*; do
         if [ -x "$repo/$package/build.sh" ]; then
             echo "Installing package $package from repo $(basename $repo)..."
-            (cd "$repo/$package" && sh build.sh)
+            (cd "$repo/$package" && sh build.sh $2)
             echo "Package $package installed successfully."
             found=true
             break
@@ -49,103 +37,51 @@ install_package() {
     fi
 }
 
-# Function to uninstall a package
-uninstall_package() {
-    package="$1"
-    for repo in "$REPO_BASE_DIR"/*; do
-        if is_installed "$package"; then
-            echo "Uninstalling package $package from repo $(basename $repo)..."
-            (cd "$repo/$package" && sh build.sh --uninstall)
-            echo "Package $package uninstalled successfully."
-            return
-        fi
-    done
-    echo "Package $package is not installed."
-}
-
-# Function to remove a package from the local repo
-remove_package() {
-    package="$1"
-    for repo in "$REPO_BASE_DIR"/*; do
-        if [ -d "$repo/$package" ]; then
-            rm -rf "$repo/$package"
-            echo "Package $package removed from local repo $(basename $repo)."
-            return
-        fi
-    done
-    echo "Package $package not found in any local repo."
-}
-
-# Function to remove a package from the repo permanently
-remove_forever() {
-    package="$1"
-    for repo in "$REPO_BASE_DIR"/*; do
-        if [ -d "$repo/$package" ]; then
-            rm -rf "$repo/$package"
-            echo "$package" >> "$BLACKLIST_FILE"
-            echo "Package $package removed from repo $(basename $repo) permanently."
-            return
-        fi
-    done
-    echo "Package $package not found in any repo."
-}
-
-# Function to search for a package
-search_package() {
-    package="$1"
-    found=false
-    for repo in "$REPO_BASE_DIR"/*; do
-        if [ -d "$repo/$package" ]; then
-            echo "Package $package found in local repo $(basename $repo)."
-            found=true
-            break
-        fi
-    done
-    if [ "$found" == false ]; then
-        echo "Package $package not found in any local repo."
+# Main function
+main() {
+    if [ "$#" -lt 1 ]; then
+        usage
     fi
+
+    case "$1" in
+        -h | --help)
+            usage
+            ;;
+        -i | --install)
+            install_package "$2"
+            ;;
+        -r | --remove)
+            remove_package "$2"
+            ;;
+        --remove-forever)
+            remove_forever "$2"
+            ;;
+        -u | --uninstall)
+            uninstall_package "$2"
+            ;;
+        -s | --search)
+            search_package "$2"
+            ;;
+        -v | --version)
+            show_version "$2"
+            ;;
+        --update)
+            update_repo
+            ;;
+        --upgrade)
+            upgrade_packages
+            ;;
+        *)
+            echo "Invalid option: $1"
+            usage
+            ;;
+    esac
 }
 
-# Function to show the current version of a package
-show_version() {
-    package="$1"
-    found=false
-    for repo in "$REPO_BASE_DIR"/*; do
-        if [ -d "$repo/$package" ]; then
-            version_file="$repo/$package/version"
-            if [ -f "$version_file" ]; then
-                current_version=$(cat "$version_file")
-                echo "Current version of package $package in repo $(basename "$repo"): $current_version"
-                found=true
-                break
-            else
-                echo "Version information not found for package $package in repo $(basename "$repo")."
-            fi
-        fi
-    done
-    if [ "$found" == false ]; then
-        echo "Package $package not found in any local repo."
-    fi
-}
+# Check if root
+if [ "$(id -u)" != "0" ]; then
+    echo "This script must be run as root"
+    exit 1
+fi
 
-# Function to update the repo from GitHub
-update_repo() {
-    echo "Updating repos from GitHub..."
-    for repo in "$REPO_BASE_DIR"/*; do
-        if [ -d "$repo/.git" ]; then
-            (cd "$repo" && git pull)
-        fi
-    done
-    # Remove packages in the blacklist
-    if [ -f "$BLACKLIST_FILE" ]; then
-        while IFS= read -r package; do
-            for repo in "$REPO_BASE_DIR"/*; do
-                if [ -d "$repo/$package" ]; then
-                    rm -rf "$repo/$package"
-                    echo "Package $package removed from repo $(basename $repo)."
-                fi
-            done
-        done < "$BLACKLIST_FILE"
-        rm "$BLACKLIST_FILE"
-    fi
-    echo
+main "$@"
