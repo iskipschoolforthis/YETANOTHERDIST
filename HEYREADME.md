@@ -62,4 +62,3 @@ Repository Structure:
 - **`version`**: This file contains the current version of the package.
 - **`other files`**: These are any additional files or resources required for the package.
 - **`blacklist.txt`**: This file contains a list of packages that have been permanently removed from the repository.
--
