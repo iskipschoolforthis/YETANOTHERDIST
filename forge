@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Configuration
 REPO_BASE_DIR="/usr/local/repos"
 BLACKLIST_FILE="/usr/local/repos/blacklist.txt"
