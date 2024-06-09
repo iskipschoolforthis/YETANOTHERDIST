@@ -1,5 +1,4 @@
 ---
-Certainly! Here are the instructions for the `build.sh` script:
 
 ### How to Use the `build.sh` Script
 
@@ -32,6 +31,8 @@ That's it! You have now learned how to use the `build.sh` script to build, insta
 -
 Repository Structure:
 -
+
+```
 /usr/local/repos/
     ├── repo1/
     │   ├── packageA/
@@ -52,4 +53,13 @@ Repository Structure:
     │       ├── version
     │       └── other files
     └── blacklist.txt
+```
+
+- **`/usr/local/repos/`**: This is the base directory for all repositories.
+- **`repo1`, `repo2`, etc.**: These are individual repositories containing packages.
+- **`packageA`, `packageB`, etc.**: These are individual packages within each repository.
+- **`build.sh`**: This script is responsible for building, installing, and uninstalling the package.
+- **`version`**: This file contains the current version of the package.
+- **`other files`**: These are any additional files or resources required for the package.
+- **`blacklist.txt`**: This file contains a list of packages that have been permanently removed from the repository.
 -
