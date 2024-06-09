@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# ANSI color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
 # Configuration
 REPO_BASE_DIR="/usr/local/repos"
 BLACKLIST_FILE="/usr/local/repos/blacklist.txt"
@@ -7,18 +13,34 @@ REPO_URL="https://github.com/yourusername/yourrepo.git"
 
 # Function to display usage
 usage() {
-    echo "Usage: $0 [option] [package]"
+    echo "Usage: forge [option] [package]"
     echo "Options:"
-    echo "  -h, --help            Display this help message"
-    echo "  -i, --install         Install a package"
-    echo "  -r, --remove          Remove a package from local repo"
-    echo "  --remove-forever      Remove a package from repo permanently"
-    echo "  -u, --uninstall       Uninstall a package"
-    echo "  -s, --search          Search for a package"
-    echo "  -v, --version         Show the current version of a package"
-    echo "  --update              Update the repo from GitHub"
-    echo "  --upgrade             Rebuild packages with new versions"
+    echo "  ${YELLOW}-h, --help${NC}            Display this help message"
+    echo "  ${YELLOW}-i, --install${NC}         Install a package"
+    echo "  ${YELLOW}-r, --remove${NC}          Remove a package from local repo"
+    echo "  ${YELLOW}--remove-forever${NC}      Remove a package from repo permanently"
+    echo "  ${YELLOW}-u, --uninstall${NC}       Uninstall a package"
+    echo "  ${YELLOW}-s, --search${NC}          Search for a package"
+    echo "  ${YELLOW}-v, --version${NC}         Show the current version of a package"
+    echo "  ${YELLOW}--update${NC}              Update the repo from GitHub"
+    echo "  ${YELLOW}--upgrade${NC}             Rebuild packages with new versions"
     exit 1
+}
+
+# Function to install Forge
+install_forge() {
+    # Make the script executable
+    chmod +x "$0"
+
+    # Move the script to /usr/local/bin
+    sudo mv "$0" /usr/local/bin/forge
+
+    # Create the repository directory
+    sudo mkdir -p /usr/local/repos
+
+    # Display installation message
+    echo -e "${GREEN}Forge has been successfully installed on your system.${NC}"
+    echo -e "${YELLOW}Please set up the repositories before using Forge.${NC}"
 }
 
 # Function to install a package
@@ -27,15 +49,15 @@ install_package() {
     found=false
     for repo in "$REPO_BASE_DIR"/*; do
         if [ -x "$repo/$package/build.sh" ]; then
-            echo "Installing package $package from repo $(basename $repo)..."
-            (cd "$repo/$package" && sh build.sh $2)
-            echo "Package $package installed successfully."
+            echo -e "${GREEN}Installing package $package from the repository $(basename "$repo")...${NC}"
+            (cd "$repo/$package" && sh build.sh "$2")
+            echo -e "${GREEN}Package $package has been installed successfully.${NC}"
             found=true
             break
         fi
     done
     if [ "$found" == false ]; then
-        echo "Build script not found for package $package in any repo."
+        echo -e "${RED}Sorry, the build script for package $package was not found in any repository.${NC}"
     fi
 }
 
@@ -74,7 +96,7 @@ main() {
             upgrade_packages
             ;;
         *)
-            echo "Invalid option: $1"
+            echo -e "${RED}Sorry, \"$1\" is not a valid option.${NC}"
             usage
             ;;
     esac
@@ -82,8 +104,14 @@ main() {
 
 # Check if root
 if [ "$(id -u)" != "0" ]; then
-    echo "This script must be run as root"
+    echo -e "${RED}Forge must be executed with root privileges.${NC}"
     exit 1
+fi
+
+# Check if already installed
+if [ -f "/usr/local/bin/forge" ]; then
+    # Remove install option if already installed
+    sed -i '/--install-forge/d' "/usr/local/bin/forge"
 fi
 
 main "$@"
