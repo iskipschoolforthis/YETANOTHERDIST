@@ -1,3 +1,5 @@
+View it inside of your text editor/anything!
+---
 build.sh should be under every package_name/
 -
 Repository Structure:
